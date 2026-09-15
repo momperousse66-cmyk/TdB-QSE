@@ -166,6 +166,18 @@ class AppState extends ChangeNotifier {
       objectifPdpComplet: parametres.objectifPdpComplet,
       delaiReponseRcJours: parametres.delaiReponseRcJours,
       themeMode: value,
+      favoriteCategories: parametres.favoriteCategories,
+    ));
+  }
+
+  Future<void> setFavoriteCategories(List<String> categories) async {
+    await setParametres(Parametres(
+      preavisEcheanceJours: parametres.preavisEcheanceJours,
+      objectifQualite: parametres.objectifQualite,
+      objectifPdpComplet: parametres.objectifPdpComplet,
+      delaiReponseRcJours: parametres.delaiReponseRcJours,
+      themeMode: parametres.themeMode,
+      favoriteCategories: categories,
     ));
   }
 

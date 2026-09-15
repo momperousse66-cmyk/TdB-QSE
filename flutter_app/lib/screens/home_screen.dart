@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../state/app_state.dart';
 import 'actions_screen.dart';
 import 'controles_qualite_screen.dart';
 import 'dashboard_screen.dart';
@@ -33,17 +35,25 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   static const _items = [
-    (Icons.dashboard, 'Accueil'),
-    (Icons.checklist, 'Actions'),
-    (Icons.shield_outlined, 'PdP'),
-    (Icons.fact_check_outlined, 'Qualité'),
-    (Icons.event_note, 'Échéances'),
-    (Icons.support_agent, 'Réclam.'),
-    (Icons.calendar_view_month, 'Suivi'),
+    _NavItem('dashboard', Icons.dashboard, 'Accueil', 0),
+    _NavItem('actions', Icons.checklist, 'Actions', 1),
+    _NavItem('pdp', Icons.shield_outlined, 'PdP', 2),
+    _NavItem('qualite', Icons.fact_check_outlined, 'Qualité', 3),
+    _NavItem('echeances', Icons.event_note, 'Échéances', 4),
+    _NavItem('reclamations', Icons.support_agent, 'Réclam.', 5),
+    _NavItem('suivi', Icons.calendar_view_month, 'Suivi', 6),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    final favorites = [
+      for (final id in state.parametres.favoriteCategories)
+        ..._items.where((item) => item.id == id),
+    ];
+    final visibleFavorites = favorites.length >= 4 ? favorites.take(4).toList() : _items.take(4).toList();
+    final hidden = _items.where((item) => !visibleFavorites.any((favorite) => favorite.id == item.id)).toList();
+
     return Scaffold(
       body: Column(
         children: [
@@ -63,19 +73,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: Row(
                         children: [
-                          for (var i = 0; i < _items.length; i++)
+                          for (final item in visibleFavorites)
                             Expanded(
                               child: _BottomNavItem(
-                                icon: _items[i].$1,
-                                label: _items[i].$2,
-                                selected: _index == i,
-                                onTap: () => setState(() => _index = i),
+                                icon: item.icon,
+                                label: item.label,
+                                selected: _index == item.pageIndex,
+                                onTap: () => setState(() => _index = item.pageIndex),
                               ),
                             ),
                         ],
                       ),
                     ),
                     const VerticalDivider(width: 12, indent: 8, endIndent: 8),
+                    PopupMenuButton<_NavItem>(
+                      tooltip: 'Autres catégories',
+                      icon: const Icon(Icons.more_horiz),
+                      itemBuilder: (context) => [
+                        for (final item in hidden)
+                          PopupMenuItem(
+                            value: item,
+                            child: Row(children: [Icon(item.icon, size: 20), const SizedBox(width: 10), Text(item.label)]),
+                          ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem<_NavItem>(
+                          enabled: false,
+                          child: Text('Gérer les favoris dans Options'),
+                        ),
+                      ],
+                      onSelected: (item) => setState(() => _index = item.pageIndex),
+                    ),
                     Expanded(
                       child: _BottomNavItem(
                         icon: Icons.tune,
@@ -93,6 +120,15 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _NavItem {
+  final String id;
+  final IconData icon;
+  final String label;
+  final int pageIndex;
+
+  const _NavItem(this.id, this.icon, this.label, this.pageIndex);
 }
 
 class _BottomNavItem extends StatelessWidget {

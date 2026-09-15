@@ -13,6 +13,15 @@ class ParametresScreen extends StatefulWidget {
 }
 
 class _ParametresScreenState extends State<ParametresScreen> {
+  static const _categories = [
+    ('dashboard', Icons.dashboard, 'Accueil'),
+    ('actions', Icons.checklist, 'Actions'),
+    ('pdp', Icons.shield_outlined, 'PdP'),
+    ('qualite', Icons.fact_check_outlined, 'Qualité'),
+    ('echeances', Icons.event_note, 'Échéances'),
+    ('reclamations', Icons.support_agent, 'Réclamations'),
+    ('suivi', Icons.calendar_view_month, 'Suivi mensuel'),
+  ];
   final _villeCtrl = TextEditingController();
   late TextEditingController _preavisCtrl;
   late TextEditingController _objQualiteCtrl;
@@ -51,6 +60,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
           _objPdpCtrl.text.trim().isEmpty ? null : (double.tryParse(_objPdpCtrl.text) ?? 0) / 100,
       delaiReponseRcJours: _delaiRcCtrl.text.trim().isEmpty ? null : int.tryParse(_delaiRcCtrl.text),
       themeMode: state.parametres.themeMode,
+      favoriteCategories: state.parametres.favoriteCategories,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paramètres enregistrés')));
@@ -121,6 +131,15 @@ class _ParametresScreenState extends State<ParametresScreen> {
           const Divider(height: 40),
           const Text('Réglages communs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
+          const Text('Catégories favorites', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Choisissez 4 catégories et faites-les glisser pour les réordonner dans le panneau du bas.'),
+          const SizedBox(height: 8),
+          _FavoritesEditor(
+            categories: _categories,
+            favoriteIds: state.parametres.favoriteCategories,
+            onChanged: state.setFavoriteCategories,
+          ),
+          const Divider(height: 32),
           DropdownButtonFormField<String>(
             initialValue: state.parametres.themeMode,
             decoration: const InputDecoration(labelText: 'Apparence', border: OutlineInputBorder()),
@@ -170,6 +189,61 @@ class _ParametresScreenState extends State<ParametresScreen> {
           FilledButton(onPressed: _saveParametres, child: const Text('Enregistrer les réglages')),
         ],
       ),
+    );
+  }
+}
+
+class _FavoritesEditor extends StatelessWidget {
+  final List<(String, IconData, String)> categories;
+  final List<String> favoriteIds;
+  final Future<void> Function(List<String>) onChanged;
+
+  const _FavoritesEditor({required this.categories, required this.favoriteIds, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final favorites = favoriteIds.where((id) => categories.any((category) => category.$1 == id)).toList();
+    return Column(
+      children: [
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: favorites.length,
+          onReorderItem: (oldIndex, newIndex) {
+            final reordered = [...favorites];
+            final item = reordered.removeAt(oldIndex);
+            reordered.insert(newIndex, item);
+            onChanged(reordered);
+          },
+          itemBuilder: (context, index) {
+            final category = categories.firstWhere((item) => item.$1 == favorites[index]);
+            return ListTile(
+              key: ValueKey(category.$1),
+              leading: const Icon(Icons.drag_handle),
+              title: Text(category.$3),
+              trailing: IconButton(
+                tooltip: 'Retirer des favoris',
+                icon: const Icon(Icons.star, color: Colors.amber),
+                onPressed: favorites.length <= 1 ? null : () => onChanged(
+                      [...favorites]..removeAt(index),
+                    ),
+              ),
+            );
+          },
+        ),
+        for (final category in categories.where((item) => !favorites.contains(item.$1)))
+          CheckboxListTile(
+            dense: true,
+            value: false,
+            secondary: Icon(category.$2),
+            title: Text(category.$3),
+            onChanged: favorites.length >= 4
+                ? (_) => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Retirez d’abord une catégorie favorite.')),
+                  )
+                : (_) => onChanged([...favorites, category.$1]),
+          ),
+      ],
     );
   }
 }
