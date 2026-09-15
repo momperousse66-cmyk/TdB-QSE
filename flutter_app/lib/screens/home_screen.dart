@@ -22,6 +22,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   static const _pages = [
     DashboardScreen(),
@@ -57,66 +70,90 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          Expanded(child: _pages[_index]),
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _pages.length,
+              onPageChanged: (index) => setState(() => _index = index),
+              itemBuilder: (context, index) => _pages[index],
+            ),
+          ),
           SafeArea(
             top: false,
-            child: Container(
-              height: 76,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          for (final item in visibleFavorites)
-                            Expanded(
-                              child: _BottomNavItem(
-                                icon: item.icon,
-                                label: item.label,
-                                selected: _index == item.pageIndex,
-                                onTap: () => setState(() => _index = item.pageIndex),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const VerticalDivider(width: 12, indent: 8, endIndent: 8),
-                    PopupMenuButton<_NavItem>(
-                      tooltip: 'Autres catégories',
-                      icon: const Icon(Icons.more_horiz),
-                      itemBuilder: (context) => [
-                        for (final item in hidden)
-                          PopupMenuItem(
-                            value: item,
-                            child: Row(children: [Icon(item.icon, size: 20), const SizedBox(width: 10), Text(item.label)]),
+            child: GestureDetector(
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) < -300) _showAllCategories(hidden);
+              },
+              child: Container(
+                height: 76,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  child: Row(
+                    children: [
+                      for (final item in visibleFavorites)
+                        Expanded(
+                          child: _BottomNavItem(
+                            icon: item.icon,
+                            label: item.label,
+                            selected: _index == item.pageIndex,
+                            onTap: () => _selectPage(item.pageIndex),
                           ),
-                        const PopupMenuDivider(),
-                        const PopupMenuItem<_NavItem>(
-                          enabled: false,
-                          child: Text('Gérer les favoris dans Options'),
                         ),
-                      ],
-                      onSelected: (item) => setState(() => _index = item.pageIndex),
-                    ),
-                    Expanded(
-                      child: _BottomNavItem(
-                        icon: Icons.tune,
-                        label: 'Options',
-                        selected: _index == _pages.length - 1,
-                        onTap: () => setState(() => _index = _pages.length - 1),
+                      Expanded(
+                        child: _BottomNavItem(
+                          icon: Icons.more_horiz,
+                          label: 'Plus',
+                          selected: false,
+                          onTap: () => _showAllCategories(hidden),
+                        ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: _BottomNavItem(
+                          icon: Icons.tune,
+                          label: 'Options',
+                          selected: _index == _pages.length - 1,
+                          onTap: () => _selectPage(_pages.length - 1),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _selectPage(int index) {
+    _pageController.animateToPage(index, duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
+  }
+
+  void _showAllCategories(List<_NavItem> hidden) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('Toutes les catégories'), subtitle: Text('Balayez la page pour changer de catégorie.')),
+            for (final item in hidden)
+              ListTile(
+                leading: Icon(item.icon),
+                title: Text(item.label),
+                onTap: () {
+                  Navigator.pop(context);
+                  _selectPage(item.pageIndex);
+                },
+              ),
+          ],
+        ),
       ),
     );
   }
