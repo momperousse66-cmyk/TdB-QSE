@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
-  bool _railExpanded = true;
+  bool _railExpanded = false;
 
   static const _pages = [
     DashboardScreen(),
