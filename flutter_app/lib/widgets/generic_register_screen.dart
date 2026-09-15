@@ -138,41 +138,47 @@ class GenericRegisterScreen<T> extends StatelessWidget {
             child: Text(subtitle, style: const TextStyle(color: Color(0xFF637588))),
           ),
           Expanded(
-            child: items.isEmpty
-                ? const Center(
-                    child: Text('Aucune donnée pour cette ville. Utilisez "Ajouter une ligne".'))
-                : SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SingleChildScrollView(
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(const Color(0xFF243B53)),
-                        headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        columns: [
-                          ...fields.map((f) => DataColumn(label: Text(f.label))),
-                          ...extraColumns.map((c) => DataColumn(label: Text(c.label))),
-                          const DataColumn(label: Text('')),
-                        ],
-                        rows: items.map((item) {
-                          final json = toJson(item);
-                          return DataRow(cells: [
-                            ...fields.map((f) => DataCell(Text(_display(json[f.key], f)))),
-                            ...extraColumns.map((c) => DataCell(
-                                c.isStatus ? StatusChip(c.compute(item)) : Text(c.compute(item)))),
-                            DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 18),
-                                onPressed: () => _editRecord(context, item),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 18),
-                                onPressed: () => onDelete(idOf(item)),
-                              ),
-                            ])),
-                          ]);
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 900;
+                final tableFields = compact ? fields.take(3).toList() : fields;
+                return items.isEmpty
+                    ? const Center(
+                        child: Text('Aucune donnée pour cette ville. Utilisez "Ajouter une ligne".'))
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            headingRowColor: WidgetStateProperty.all(const Color(0xFF243B53)),
+                            headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            columns: [
+                              ...tableFields.map((f) => DataColumn(label: Text(f.label))),
+                              ...extraColumns.map((c) => DataColumn(label: Text(c.label))),
+                              const DataColumn(label: Text('')),
+                            ],
+                            rows: items.map((item) {
+                              final json = toJson(item);
+                              return DataRow(cells: [
+                                ...tableFields.map((f) => DataCell(Text(_display(json[f.key], f)))),
+                                ...extraColumns.map((c) => DataCell(
+                                    c.isStatus ? StatusChip(c.compute(item)) : Text(c.compute(item)))),
+                                DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 18),
+                                    onPressed: () => _editRecord(context, item),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, size: 18),
+                                    onPressed: () => onDelete(idOf(item)),
+                                  ),
+                                ])),
+                              ]);
+                            }).toList(),
+                          ),
+                        ),
+                      );
+              },
+            ),
           ),
         ],
       ),
