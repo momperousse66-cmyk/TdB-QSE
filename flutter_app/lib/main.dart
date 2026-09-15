@@ -18,10 +18,16 @@ class QseDashboardApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Tableau de bord QSE',
         debugShowCheckedModeBanner: false,
+        themeMode: context.watch<AppState>().themeMode,
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: const Color(0xFF243B53),
           scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+        ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: const Color(0xFF243B53),
+          brightness: Brightness.dark,
         ),
         home: Consumer<AppState>(
           builder: (context, state, _) {

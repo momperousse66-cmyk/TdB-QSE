@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/seed_data.dart';
@@ -35,6 +35,12 @@ class AppState extends ChangeNotifier {
 
   bool _loaded = false;
   bool get loaded => _loaded;
+
+  ThemeMode get themeMode => switch (parametres.themeMode) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
 
   Future<void> load() async {
     final data = await _storage.load();
@@ -146,6 +152,21 @@ class AppState extends ChangeNotifier {
     parametres = p;
     await _persist();
     notifyListeners();
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    final value = switch (mode) {
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+      _ => 'system',
+    };
+    await setParametres(Parametres(
+      preavisEcheanceJours: parametres.preavisEcheanceJours,
+      objectifQualite: parametres.objectifQualite,
+      objectifPdpComplet: parametres.objectifPdpComplet,
+      delaiReponseRcJours: parametres.delaiReponseRcJours,
+      themeMode: value,
+    ));
   }
 
   // ---- CRUD génériques par registre ----

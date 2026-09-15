@@ -20,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  bool _railExpanded = true;
 
   static const _pages = [
     DashboardScreen(),
@@ -40,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
     (Icons.event_note, 'Échéances'),
     (Icons.support_agent, 'Réclamations'),
     (Icons.calendar_view_month, 'Suivi mensuel'),
-    (Icons.tune, 'Options'),
   ];
 
   @override
@@ -48,15 +48,48 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            selectedIndex: _index,
-            onDestinationSelected: (i) => setState(() => _index = i),
-            labelType: NavigationRailLabelType.all,
-            backgroundColor: const Color(0xFFF7FAFC),
-            destinations: [
-              for (final it in _items)
-                NavigationRailDestination(icon: Icon(it.$1), label: Text(it.$2, textAlign: TextAlign.center)),
-            ],
+          SafeArea(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: _railExpanded ? 240 : 72,
+              color: Theme.of(context).colorScheme.surfaceContainerLowest,
+              child: Column(
+                children: [
+                  Align(
+                    alignment: _railExpanded ? Alignment.centerRight : Alignment.center,
+                    child: IconButton(
+                      tooltip: _railExpanded ? 'Rétracter le menu' : 'Déployer le menu',
+                      icon: Icon(_railExpanded ? Icons.chevron_left : Icons.chevron_right),
+                      onPressed: () => setState(() => _railExpanded = !_railExpanded),
+                    ),
+                  ),
+                  Expanded(
+                    child: NavigationRail(
+                      selectedIndex: _index < _items.length ? _index : null,
+                      onDestinationSelected: (i) => setState(() => _index = i),
+                      extended: _railExpanded,
+                      labelType: _railExpanded ? null : NavigationRailLabelType.none,
+                      backgroundColor: Colors.transparent,
+                      destinations: [
+                        for (final it in _items)
+                          NavigationRailDestination(icon: Icon(it.$1), label: Text(it.$2)),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Tooltip(
+                    message: 'Options',
+                    child: ListTile(
+                      selected: _index == _pages.length - 1,
+                      leading: const Icon(Icons.tune),
+                      title: _railExpanded ? const Text('Options') : null,
+                      onTap: () => setState(() => _index = _pages.length - 1),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
           ),
           const VerticalDivider(width: 1),
           Expanded(child: _pages[_index]),

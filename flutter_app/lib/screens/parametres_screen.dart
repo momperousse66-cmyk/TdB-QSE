@@ -50,6 +50,7 @@ class _ParametresScreenState extends State<ParametresScreen> {
       objectifPdpComplet:
           _objPdpCtrl.text.trim().isEmpty ? null : (double.tryParse(_objPdpCtrl.text) ?? 0) / 100,
       delaiReponseRcJours: _delaiRcCtrl.text.trim().isEmpty ? null : int.tryParse(_delaiRcCtrl.text),
+      themeMode: state.parametres.themeMode,
     ));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paramètres enregistrés')));
@@ -119,6 +120,24 @@ class _ParametresScreenState extends State<ParametresScreen> {
               )),
           const Divider(height: 40),
           const Text('Réglages communs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: state.parametres.themeMode,
+            decoration: const InputDecoration(labelText: 'Apparence', border: OutlineInputBorder()),
+            items: const [
+              DropdownMenuItem(value: 'system', child: Text('Comme l\'OS')),
+              DropdownMenuItem(value: 'light', child: Text('Mode clair')),
+              DropdownMenuItem(value: 'dark', child: Text('Mode sombre')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                state.setThemeMode(ThemeMode.values.firstWhere(
+                  (mode) => mode.name == value,
+                  orElse: () => ThemeMode.system,
+                ));
+              }
+            },
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _preavisCtrl,
