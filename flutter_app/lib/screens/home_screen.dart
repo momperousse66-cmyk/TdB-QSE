@@ -33,13 +33,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   static const _items = [
-    (Icons.dashboard, 'Tableau de bord'),
+    (Icons.dashboard, 'Accueil'),
     (Icons.checklist, 'Actions'),
-    (Icons.shield_outlined, 'Plans de prévention'),
-    (Icons.fact_check_outlined, 'Contrôles qualité'),
+    (Icons.shield_outlined, 'PdP'),
+    (Icons.fact_check_outlined, 'Qualité'),
     (Icons.event_note, 'Échéances'),
-    (Icons.support_agent, 'Réclamations'),
-    (Icons.calendar_view_month, 'Suivi mensuel'),
+    (Icons.support_agent, 'Réclam.'),
+    (Icons.calendar_view_month, 'Suivi'),
   ];
 
   @override
@@ -56,24 +56,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Theme.of(context).colorScheme.surfaceContainerLowest,
                 border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
                 child: Row(
                   children: [
-                    for (var i = 0; i < _items.length; i++)
-                      _BottomNavItem(
-                        icon: _items[i].$1,
-                        label: _items[i].$2,
-                        selected: _index == i,
-                        onTap: () => setState(() => _index = i),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          for (var i = 0; i < _items.length; i++)
+                            Expanded(
+                              child: _BottomNavItem(
+                                icon: _items[i].$1,
+                                label: _items[i].$2,
+                                selected: _index == i,
+                                onTap: () => setState(() => _index = i),
+                              ),
+                            ),
+                        ],
                       ),
-                    const VerticalDivider(width: 24, indent: 8, endIndent: 8),
-                    _BottomNavItem(
-                      icon: Icons.tune,
-                      label: 'Options',
-                      selected: _index == _pages.length - 1,
-                      onTap: () => setState(() => _index = _pages.length - 1),
+                    ),
+                    const VerticalDivider(width: 12, indent: 8, endIndent: 8),
+                    Expanded(
+                      child: _BottomNavItem(
+                        icon: Icons.tune,
+                        label: 'Options',
+                        selected: _index == _pages.length - 1,
+                        onTap: () => setState(() => _index = _pages.length - 1),
+                      ),
                     ),
                   ],
                 ),
@@ -103,7 +112,6 @@ class _BottomNavItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         onTap: onTap,
         child: SizedBox(
-          width: 108,
           height: 64,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
