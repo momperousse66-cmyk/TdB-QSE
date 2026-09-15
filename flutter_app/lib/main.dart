@@ -15,27 +15,24 @@ class QseDashboardApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppState()..load(),
-      child: MaterialApp(
-        title: 'Tableau de bord QSE',
-        debugShowCheckedModeBanner: false,
-        themeMode: context.watch<AppState>().themeMode,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFF243B53),
-          scaffoldBackgroundColor: const Color(0xFFF7FAFC),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color(0xFF243B53),
-          brightness: Brightness.dark,
-        ),
-        home: Consumer<AppState>(
-          builder: (context, state, _) {
-            if (!state.loaded) {
-              return const Scaffold(body: Center(child: CircularProgressIndicator()));
-            }
-            return const HomeScreen();
-          },
+      child: Consumer<AppState>(
+        builder: (context, state, _) => MaterialApp(
+          title: 'Tableau de bord QSE',
+          debugShowCheckedModeBanner: false,
+          themeMode: state.themeMode,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xFF243B53),
+            scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xFF243B53),
+            brightness: Brightness.dark,
+          ),
+          home: !state.loaded
+              ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+              : const HomeScreen(),
         ),
       ),
     );
